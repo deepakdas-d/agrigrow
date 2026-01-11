@@ -7,6 +7,7 @@ import 'package:agrigrow/features/weather/presentation/providers/weather_provide
 import 'package:agrigrow/features/dashboard/presentation/widgets/farm_weather_card.dart';
 import 'package:agrigrow/features/dashboard/presentation/widgets/motors_list.dart';
 import 'package:agrigrow/features/dashboard/presentation/pages/farm_list_page.dart';
+import 'package:agrigrow/features/dashboard/presentation/pages/chat_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -35,7 +36,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 label: 'Retry',
                 textColor: Colors.white,
                 onPressed: () {
-                   weatherProvider.fetchWeather();
+                  weatherProvider.fetchWeather();
                 },
               ),
             ),
@@ -44,7 +45,7 @@ class _DashboardPageState extends State<DashboardPage> {
       });
     });
   }
-  
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -57,26 +58,58 @@ class _DashboardPageState extends State<DashboardPage> {
     final List<Widget> pages = [
       _buildHomeContent(),
       const FarmListPage(), // Navigate to Farm List (Tasks)
-      const Center(child: Text("Chat - Coming Soon")),
+      const ChatPage(),
     ];
 
     return Scaffold(
       backgroundColor: AppColors.white,
       body: pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          selectedItemColor: AppColors.primaryGreen,
-          unselectedItemColor: Colors.grey,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home, size: 30), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.assignment, size: 30), label: 'Tasks'), // Assignment icon works for Farm List
-              BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline, size: 30), label: 'Chat'),
+      bottomNavigationBar: Container(
+        height: 70,
+        decoration: BoxDecoration(
+          color: Color.fromARGB(253, 251, 247, 247),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, -2),
+            ),
           ],
+        ),
+        child: Row(
+          children: [
+            _navItem(Icons.home, 0),
+            _divider(),
+            _navItem(Icons.assignment, 1),
+            _divider(),
+            _navItem(Icons.chat_bubble_outline, 2),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _navItem(IconData icon, int index) {
+    final isSelected = _selectedIndex == index;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => _onItemTapped(index),
+        child: Icon(
+          icon,
+          size: 30,
+          color: isSelected ? AppColors.primaryGreen : Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _divider() {
+    return Container(height: 30, width: 1, color: Colors.grey.shade300);
   }
 
   // Extracted Home Content to keep build method clean
@@ -90,113 +123,141 @@ class _DashboardPageState extends State<DashboardPage> {
 
     // Mock Data for Motors
     final motors = [
-      MotorItem(farmName: 'Palakkad', loraId: '25', schedule: '10:00am to 11:00am (daily)'),
-      MotorItem(farmName: 'Pollachi', loraId: '12', schedule: '07:00am to 08:00am (mon,wed)'),
+      MotorItem(
+        farmName: 'Palakkad',
+        loraId: '25',
+        schedule: '10:00am to 11:00am (daily)',
+      ),
+      MotorItem(
+        farmName: 'Pollachi',
+        loraId: '12',
+        schedule: '07:00am to 08:00am (mon,wed)',
+      ),
     ];
 
     return Stack(
-        children: [
-            // Top Green Background
-            Container(
-                height: 300,
-                decoration: const BoxDecoration(
-                    color: AppColors.primaryGreen,
-                    borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(50),
-                        bottomRight: Radius.circular(50),
-                    )
-                ),
+      children: [
+        // Top Green Background
+        Container(
+          height: 300,
+          decoration: const BoxDecoration(
+            color: AppColors.primaryGreen,
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(50),
+              bottomRight: Radius.circular(50),
             ),
-            
-            SafeArea(
-                child: Column(
+          ),
+        ),
+
+        SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 25,
+                      backgroundColor: Colors.white24,
+                      child: Icon(Icons.person, color: Colors.white, size: 30),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'GOOD MORNING,',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                        const Text(
+                          'FARMER',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Carousel
+              Consumer<WeatherProvider>(
+                builder: (context, weatherProvider, child) {
+                  return Column(
                     children: [
-                        // Header
-                        Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Row(
-                                children: [
-                                    const CircleAvatar(
-                                        radius: 25,
-                                        backgroundColor: Colors.white24,
-                                        child: Icon(Icons.person, color: Colors.white, size: 30),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                            const Text('GOOD MORNING,', style: TextStyle(color: Colors.white70, fontSize: 14)),
-                                            const Text('FARMER', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                                        ],
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                        icon: const Icon(Icons.notifications_none, color: Colors.white),
-                                        onPressed: () {},
-                                    )
-                                ],
+                      CarouselSlider.builder(
+                        itemCount: farms.length,
+                        itemBuilder: (context, index, realIndex) {
+                          return FarmWeatherCard(
+                            weather: weatherProvider.weather,
+                            farmName: farms[index]['name']!,
+                            date: DateFormat(
+                              'MMM d,yyyy h.mm a',
+                            ).format(DateTime.now()),
+                          );
+                        },
+                        options: CarouselOptions(
+                          height: 320,
+                          viewportFraction: 0.85,
+                          enableInfiniteScroll: false,
+                          enlargeCenterPage: true,
+                          onPageChanged: (index, reason) {
+                            setState(() {
+                              _currentCarouselIndex = index;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Dots Indicator
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: farms.asMap().entries.map((entry) {
+                          return Container(
+                            width: 8.0,
+                            height: 8.0,
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 8.0,
+                              horizontal: 4.0,
                             ),
-                        ),
-                        
-                        const SizedBox(height: 10),
-                        
-                        // Carousel
-                        Consumer<WeatherProvider>(
-                            builder: (context, weatherProvider, child) {
-                                return Column(
-                                    children: [
-                                        CarouselSlider.builder(
-                                            itemCount: farms.length,
-                                            itemBuilder: (context, index, realIndex) {
-                                                return FarmWeatherCard(
-                                                    weather: weatherProvider.weather,
-                                                    farmName: farms[index]['name']!,
-                                                    date: DateFormat('MMM d,yyyy h.mm a').format(DateTime.now()),
-                                                );
-                                            },
-                                            options: CarouselOptions(
-                                                height: 320,
-                                                viewportFraction: 0.85,
-                                                enableInfiniteScroll: false,
-                                                enlargeCenterPage: true,
-                                                onPageChanged: (index, reason) {
-                                                    setState(() {
-                                                        _currentCarouselIndex = index;
-                                                    });
-                                                },
-                                            ),
-                                        ),
-                                        const SizedBox(height: 10),
-                                        // Dots Indicator
-                                        Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: farms.asMap().entries.map((entry) {
-                                                return Container(
-                                                    width: 8.0,
-                                                    height: 8.0,
-                                                    margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                                                    decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: Colors.black.withValues(alpha: _currentCarouselIndex == entry.key ? 0.9 : 0.4),
-                                                    ),
-                                                );
-                                            }).toList(),
-                                        ),
-                                    ],
-                                );
-                            },
-                        ),
-                        
-                        // Motors List
-                        Expanded(
-                            child: SingleChildScrollView(
-                                child: MotorsList(motors: motors),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(
+                                alpha: _currentCarouselIndex == entry.key
+                                    ? 0.9
+                                    : 0.4,
+                              ),
                             ),
-                        ),
+                          );
+                        }).toList(),
+                      ),
                     ],
-                ),
-            ),
-        ],
-      );
+                  );
+                },
+              ),
+
+              // Motors List
+              Expanded(
+                child: SingleChildScrollView(child: MotorsList(motors: motors)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
