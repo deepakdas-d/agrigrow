@@ -7,13 +7,25 @@ class MotorItem {
   final String schedule;
   final bool isRunning;
 
-  MotorItem({required this.farmName, required this.loraId, required this.schedule, this.isRunning = true});
+  MotorItem({
+    required this.farmName,
+    required this.loraId,
+    required this.schedule,
+    this.isRunning = true,
+  });
 }
 
 class MotorsList extends StatelessWidget {
   final List<MotorItem> motors;
+  final bool shrinkWrap;
+  final ScrollPhysics? physics;
 
-  const MotorsList({super.key, required this.motors});
+  const MotorsList({
+    super.key,
+    required this.motors,
+    this.shrinkWrap = false,
+    this.physics,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +36,17 @@ class MotorsList extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Text(
             'MOTORS IN SCHEDULE',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
           ),
         ),
         ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: shrinkWrap,
+          physics: physics ?? const NeverScrollableScrollPhysics(),
           itemCount: motors.length,
           itemBuilder: (context, index) {
             final motor = motors[index];
@@ -52,34 +68,68 @@ class MotorsList extends StatelessWidget {
                 children: [
                   // Motor Icon Circle
                   Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
+                    width: 63,
+                    height: 63,
+                    decoration: const BoxDecoration(
                       color: AppColors.lightGreen,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.settings_input_component, color: AppColors.darkGreen, size: 30),
+                    child: Center(
+                      child: Image.asset(
+                        'assets/icons/water-pump.png',
+                        width: 45, // smaller
+                        height: 45,
+                        fit: BoxFit.contain,
+                        color: AppColors.darkGreen,
+                      ),
+                    ),
                   ),
+
                   const SizedBox(width: 16),
-                  
+
                   // Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Farm Name: ${motor.farmName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        Text(
+                          'Farm Name: ${motor.farmName}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text('LoraID :${motor.loraId}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(
+                          'LoraID :${motor.loraId}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text('Schedule : ${motor.schedule}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(
+                          'Schedule : ${motor.schedule}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  
+
                   // Stop Button
                   TextButton(
                     onPressed: () {},
-                    child: const Text('Stop Now', style: TextStyle(color: Colors.red, decoration: TextDecoration.underline, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Stop Now',
+                      style: TextStyle(
+                        color: Colors.red,
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),

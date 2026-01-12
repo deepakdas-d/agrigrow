@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:agrigrow/features/auth/presentation/providers/auth_provider.dart';
+import 'package:agrigrow/main.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,9 +37,26 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 1600), () {
-      Navigator.pushReplacementNamed(context, '/home');
-    });
+    _checkLoginAndNavigate();
+  }
+
+  Future<void> _checkLoginAndNavigate() async {
+    // Start auth check
+    final authProvider = context.read<AuthProvider>();
+    // We don't await the check here, we let it happen in background 
+    // so it updates the provider state.
+    authProvider.checkLoginStatus();
+
+    // Enforce splash duration
+    await Future.delayed(const Duration(milliseconds: 1600));
+
+    if (!mounted) return;
+
+    // Navigate to AuthWrapper which handles the rest
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: (context) => const AuthWrapper()),
+    );
   }
 
   @override
@@ -47,6 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    // ... existing build ...
     return Scaffold(
       backgroundColor: const Color(0xFF426F4C),
       body: Center(

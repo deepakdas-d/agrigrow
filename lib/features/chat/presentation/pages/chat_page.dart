@@ -111,8 +111,7 @@ class _ChatPageState extends State<ChatPage> {
             color: Colors.white,
           ),
         ),
-        centerTitle:
-            false, // Left aligned in design? It says "TALK TO ARGIBOT". Actually looks centered or slightly left. Let's keep default or check image. Looks user-left aligned title? No, standard AppBar.
+        centerTitle: false,
         backgroundColor: AppColors.primaryGreen,
         elevation: 0,
         shape: const RoundedRectangleBorder(
@@ -160,44 +159,54 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
-    final isUser = message.isUser;
-    final align = isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    // Actually in image: User is Green, Bot is also Green?
-    // Wait, "What is correct time..." (Right - User) -> Green Bubble.
-    // "The best time..." (Left - Bot) -> Green Bubble.
-    // Distinct? They look very similar. Let's use darker for User, lighter for Bot?
-    // Or User = 0xFFA5C0AC (Green), Bot = 0xFF9FBFA5 (Similar).
-    // Let's match the image: User Right, Bot Left.
-    // Text Color: Black/Dark Grey.
+    final bool isUser = message.isUser;
 
-    return Column(
-      crossAxisAlignment: align,
-      children: [
-        Container(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75,
-          ),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(
-              0xFFA5C0AC,
-            ).withValues(alpha: 0.8), // Muted Green
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(20),
-              topRight: const Radius.circular(20),
-              bottomLeft: isUser ? const Radius.circular(20) : Radius.zero,
-              bottomRight: isUser ? Radius.zero : const Radius.circular(20),
-            ),
-          ),
-          child: message.type == 'text'
-              ? Text(
-                  message.text ?? '',
-                  style: const TextStyle(color: Colors.white),
-                ) // Looks dark text in image? "What is the correct..." is Black. No, it's black on green.
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
+    final Alignment alignment = isUser
+        ? Alignment.centerRight
+        : Alignment.centerLeft;
+
+    final Color bubbleColor = isUser
+        ? AppColors.primaryGreen
+        : const Color(0xFFE8F2EC);
+
+    final Color textColor = isUser ? Colors.white : Colors.black87;
+
+    final BorderRadius borderRadius = BorderRadius.only(
+      topLeft: const Radius.circular(18),
+      topRight: const Radius.circular(18),
+      bottomLeft: isUser ? const Radius.circular(18) : const Radius.circular(4),
+      bottomRight: isUser
+          ? const Radius.circular(4)
+          : const Radius.circular(18),
+    );
+
+    return Align(
+      alignment: alignment,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (!isUser) ...[
+              const CircleAvatar(
+                radius: 14,
+                backgroundColor: AppColors.primaryGreen,
+                child: Icon(Icons.smart_toy, size: 14, color: Colors.white),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
+              ),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: bubbleColor,
+                borderRadius: borderRadius,
+              ),
+              child: message.type == 'image'
+                  ? ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: Image.file(
                         message.image!,
@@ -205,22 +214,15 @@ class _ChatPageState extends State<ChatPage> {
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
+                    )
+                  : Text(
+                      message.text ?? '',
+                      style: TextStyle(color: textColor),
                     ),
-                    if (message.text != null && message.text!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(message.text!),
-                    ],
-                  ],
-                ),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 4, bottom: 10),
-          child: Text(
-            message.time,
-            style: const TextStyle(color: Colors.grey, fontSize: 10),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -236,8 +238,8 @@ class _ChatPageState extends State<ChatPage> {
           ),
           padding: const EdgeInsets.all(10), // Reduced header padding for image
           decoration: BoxDecoration(
-            color: Colors
-                .grey[300], // Grey bubble for the image one? Image shows grey background.
+            color: AppColors
+                .primaryGreen, // Grey bubble for the image one? Image shows grey background.
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -265,7 +267,7 @@ class _ChatPageState extends State<ChatPage> {
               const SizedBox(height: 8),
               const Text(
                 'what is the isuue ?',
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Colors.white),
               ),
             ],
           ),
@@ -289,7 +291,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 1),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(30),

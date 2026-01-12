@@ -11,6 +11,7 @@ import 'package:agrigrow/features/weather/data/repositories/weather_repository_i
 import 'package:agrigrow/features/weather/domain/repositories/weather_repository.dart';
 import 'package:agrigrow/features/weather/presentation/providers/weather_provider.dart';
 import 'package:agrigrow/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:agrigrow/splash_screen.dart';
 
 
 void main() {
@@ -51,7 +52,7 @@ class AppRoot extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'AgriGrow',
       theme: AppTheme.lightTheme,
-      home: const AuthWrapper(),
+      home: const SplashScreen(),
       // Retain routes if needed, but for now we rely on Wrapper for Auth status
     );
   }
