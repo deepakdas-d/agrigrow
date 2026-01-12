@@ -16,33 +16,55 @@ class DashboardPage extends StatefulWidget {
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class _DashboardPageState extends State<DashboardPage> with WidgetsBindingObserver {
   int _currentCarouselIndex = 0;
   int _selectedIndex = 0; // For Bottom Navigation
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Fetch weather once on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchWeather();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Re-fetch weather when app comes to foreground (e.g. from Settings)
       final weatherProvider = context.read<WeatherProvider>();
-      weatherProvider.fetchWeather().then((_) {
-        if (weatherProvider.error != null && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(weatherProvider.error!),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: Colors.white,
-                onPressed: () {
-                  weatherProvider.fetchWeather();
-                },
-              ),
+      if (weatherProvider.weather == null || weatherProvider.error != null) {
+        _fetchWeather();
+      }
+    }
+  }
+
+  void _fetchWeather() {
+    final weatherProvider = context.read<WeatherProvider>();
+    weatherProvider.fetchWeather().then((_) {
+      if (weatherProvider.error != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(weatherProvider.error!),
+            backgroundColor: Colors.red,
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () {
+                _fetchWeather();
+              },
             ),
-          );
-        }
-      });
+          ),
+        );
+      }
     });
   }
 
@@ -150,137 +172,143 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
 
         SafeArea(
-          child: SingleChildScrollView(
-            // Make entire page scrollable to prevent overflow
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 25,
-                        backgroundColor: Colors.white24,
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          child: RefreshIndicator(
+              onRefresh: () async {
+                await context.read<WeatherProvider>().fetchWeather();
+              },
+              child: SingleChildScrollView(
+                // Make entire page scrollable to prevent overflow
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
                         children: [
-                          const Text(
-                            'GOOD MORNING,',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
+                          const CircleAvatar(
+                            radius: 25,
+                            backgroundColor: Colors.white24,
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ),
-                          const Text(
-                            'FARMER',
-                            style: TextStyle(
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'GOOD MORNING,',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const Text(
+                                'FARMER',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.notifications_none,
                               color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
                             ),
+                            onPressed: () {},
                           ),
                         ],
                       ),
-                      const Spacer(),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_none,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // Carousel
-                Consumer<WeatherProvider>(
-                  builder: (context, weatherProvider, child) {
-                    return Column(
-                      children: [
-                        CarouselSlider.builder(
-                          itemCount: farms.length,
-                          itemBuilder: (context, index, realIndex) {
-                            return FarmWeatherCard(
-                              weather: weatherProvider.weather,
-                              farmName: farms[index]['name']!,
-                              date: DateFormat(
-                                'MMM d,yyyy h.mm a',
-                              ).format(DateTime.now()),
-                            );
-                          },
-                          options: CarouselOptions(
-                            height: 260,
-                            // Adjust viewport fraction for smoother spacing
-                            viewportFraction:
-                                MediaQuery.of(context).size.width > 600
-                                ? 0.5
-                                : 0.85,
-                            enableInfiniteScroll:
-                                true, // Allow looping for auto-play
-                            autoPlay: true, // Auto-play enabled
-                            autoPlayInterval: const Duration(seconds: 4),
-                            enlargeCenterPage: true,
-                            onPageChanged: (index, reason) {
-                              setState(() {
-                                _currentCarouselIndex = index;
-                              });
-                            },
-                          ),
-                        ),
-                        // Reduced bottom spacing
-                        const SizedBox(height: 5),
-                        // Dots Indicator
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: farms.asMap().entries.map((entry) {
-                            return Container(
-                              width: 8.0,
-                              height: 8.0,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 8.0,
-                                horizontal: 4.0,
+                    ),
+    
+                    const SizedBox(height: 10),
+    
+                    // Carousel
+                    Consumer<WeatherProvider>(
+                      builder: (context, weatherProvider, child) {
+                        return Column(
+                          children: [
+                            CarouselSlider.builder(
+                              itemCount: farms.length,
+                              itemBuilder: (context, index, realIndex) {
+                                return FarmWeatherCard(
+                                  weather: weatherProvider.weather,
+                                  farmName: farms[index]['name']!,
+                                  date: DateFormat(
+                                    'MMM d,yyyy h.mm a',
+                                  ).format(DateTime.now()),
+                                );
+                              },
+                              options: CarouselOptions(
+                                height: 260,
+                                // Adjust viewport fraction for smoother spacing
+                                viewportFraction:
+                                    MediaQuery.of(context).size.width > 600
+                                    ? 0.5
+                                    : 0.85,
+                                enableInfiniteScroll:
+                                    true, // Allow looping for auto-play
+                                autoPlay: true, // Auto-play enabled
+                                autoPlayInterval: const Duration(seconds: 4),
+                                enlargeCenterPage: true,
+                                onPageChanged: (index, reason) {
+                                  setState(() {
+                                    _currentCarouselIndex = index;
+                                  });
+                                },
                               ),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(
-                                  alpha: _currentCarouselIndex == entry.key
-                                      ? 0.9
-                                      : 0.4,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    );
-                  },
+                            ),
+                            // Reduced bottom spacing
+                            const SizedBox(height: 5),
+                            // Dots Indicator
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: farms.asMap().entries.map((entry) {
+                                return Container(
+                                  width: 8.0,
+                                  height: 8.0,
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 8.0,
+                                    horizontal: 4.0,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black.withValues(
+                                      alpha: _currentCarouselIndex == entry.key
+                                          ? 0.9
+                                          : 0.4,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+    
+                    // Motors List
+                    // Using shrinkWrap: true so it fits in SingleChildScrollView
+                    MotorsList(
+                      motors: motors,
+                      shrinkWrap: true,
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Let parent handle scroll
+                    ),
+    
+                    // Add some bottom padding for better scroll experience
+                    const SizedBox(height: 20),
+                  ],
                 ),
-
-                // Motors List
-                // Using shrinkWrap: true so it fits in SingleChildScrollView
-                MotorsList(
-                  motors: motors,
-                  shrinkWrap: true,
-                  physics:
-                      const NeverScrollableScrollPhysics(), // Let parent handle scroll
-                ),
-
-                // Add some bottom padding for better scroll experience
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
         ),
       ],
     );

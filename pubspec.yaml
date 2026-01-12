@@ -14,7 +14,6 @@ dependencies:
 
   cupertino_icons: ^1.0.8
 
-  flutter_launcher_icons: ^0.14.4
   provider: ^6.1.5+1
   google_fonts: ^7.0.0
   dio: ^5.9.0
@@ -31,13 +30,8 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
   flutter_native_splash: ^2.3.0
-flutter:
-  uses-material-design: true
-
-  assets:
-    - assets/images/
-    - assets/icons/
 
 flutter_launcher_icons:
   android: true
@@ -49,11 +43,26 @@ flutter_launcher_icons:
   adaptive_icon_foreground: assets/images/argo-grow.png
 
 flutter_native_splash:
-  color: "#426F4C" # background color of splash
-  image: assets/images/argo-grow.png # centered splash image
+  color: "#426F4C"
+  image: assets/images/argo-grow.png
+
   android: true
   ios: true
+  web: false
+
   android_gravity: center
   ios_content_mode: scaleAspectFit
   fullscreen: true
-  web: false
+
+  android_12:
+    image: assets/images/argo-grow.png
+    icon_background_color: "#426F4C"
+    image_dark: assets/images/argo-grow.png
+    icon_background_color_dark: "#426F4C"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
